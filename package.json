@@ -1,0 +1,31 @@
+{
+  "name": "simulador-relativistico-fisica-4",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Simulador Relativístico · Física 4 — efeitos visuais de viajar perto da velocidade da luz (TypeScript + Three.js / WebGL)",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host"
+  },
+  "keywords": [
+    "relatividade-especial",
+    "fisica",
+    "webgl",
+    "threejs",
+    "lorentz",
+    "doppler"
+  ],
+  "author": "Sergio",
+  "license": "MIT",
+  "dependencies": {
+    "lil-gui": "^0.21.0",
+    "three": "^0.184.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.184.1",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16"
+  }
+}

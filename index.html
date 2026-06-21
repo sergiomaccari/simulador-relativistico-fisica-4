@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulador Relativístico · Física 4</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="scene"></canvas>
+
+      <!-- Cabeçalho -->
+      <header id="topbar">
+        <h1>⚡ Simulador Relativístico</h1>
+        <span class="subtitle">Física 4 · Relatividade Especial</span>
+      </header>
+
+      <!-- Painel de leitura (HUD) preenchido por src/ui/Hud.ts -->
+      <aside id="hud"></aside>
+
+      <!-- Dica de uso -->
+      <footer id="hint">
+        <strong>Orbital:</strong> arraste p/ orbitar · scroll p/ zoom &nbsp;|&nbsp;
+        <strong>Olho:</strong> arraste p/ girar o olhar (β no painel) &nbsp;|&nbsp;
+        <strong>1ª pessoa:</strong> clique e ande com WASD · <em>ESC</em> pausa
+      </footer>
+
+      <!-- Aviso do modo primeira pessoa -->
+      <div id="fp-prompt" class="hidden">
+        <div class="fp-title">▶ Clique para jogar</div>
+        <div class="fp-keys">
+          WASD mover · mouse olhar · Espaço / Shift subir-descer ·
+          <strong>ESC pausa</strong> (2× para sair)
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

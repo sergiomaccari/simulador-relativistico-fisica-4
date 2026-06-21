@@ -1,0 +1,188 @@
+:root {
+  --bg: #05060a;
+  --fg: #e8ecf4;
+  --muted: #8a93a6;
+  --accent: #5ad1ff;
+  --accent-2: #ff7a5a;
+  --panel: rgba(14, 18, 28, 0.82);
+  --border: rgba(120, 140, 180, 0.18);
+  font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  overflow: hidden;
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+}
+
+#scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ---------- Cabeçalho ---------- */
+#topbar {
+  position: absolute;
+  top: 18px;
+  left: 22px;
+  pointer-events: none;
+  user-select: none;
+}
+
+#topbar h1 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+  color: var(--fg);
+  text-shadow: 0 2px 18px rgba(90, 209, 255, 0.35);
+}
+
+#topbar .subtitle {
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ---------- HUD (leituras) ---------- */
+#hud {
+  position: absolute;
+  top: 86px;
+  left: 22px;
+  min-width: 230px;
+  padding: 14px 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  font-size: 13px;
+  line-height: 1.5;
+  pointer-events: none;
+}
+
+#hud .hud-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+#hud .hud-label {
+  color: var(--muted);
+}
+
+#hud .hud-value {
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+}
+
+#hud .hud-value.accent {
+  color: var(--accent);
+}
+
+#hud .hud-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 9px 0;
+}
+
+#hud .hud-clocks {
+  display: flex;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+#hud .clock {
+  flex: 1;
+  text-align: center;
+}
+
+#hud .clock canvas {
+  display: block;
+  margin: 0 auto 4px;
+}
+
+#hud .clock .clock-name {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ---------- Rodapé ---------- */
+#hint {
+  position: absolute;
+  bottom: 16px;
+  left: 22px;
+  font-size: 11px;
+  color: var(--muted);
+  pointer-events: none;
+  user-select: none;
+}
+
+#hint em {
+  color: var(--accent);
+  font-style: normal;
+}
+
+#hint strong {
+  color: var(--fg);
+  font-weight: 700;
+}
+
+/* ---------- Aviso do modo primeira pessoa ---------- */
+#fp-prompt {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(5, 6, 10, 0.55);
+  backdrop-filter: blur(2px);
+  user-select: none;
+  pointer-events: none; /* o clique atravessa até o canvas (pointer lock) */
+  z-index: 5;
+}
+
+#fp-prompt.hidden {
+  display: none;
+}
+
+#fp-prompt .fp-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--fg);
+  text-shadow: 0 2px 24px rgba(90, 209, 255, 0.5);
+}
+
+#fp-prompt .fp-keys {
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 0.4px;
+}
+
+/* ---------- lil-gui ajustes ---------- */
+.lil-gui {
+  --background-color: var(--panel);
+  --widget-color: rgba(40, 50, 70, 0.7);
+  --font-size: 12px;
+  --title-background-color: rgba(20, 26, 40, 0.95);
+}
