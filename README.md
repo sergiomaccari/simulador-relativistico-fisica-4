@@ -3,7 +3,7 @@
 Simulador interativo dos efeitos visuais de viajar perto da velocidade da luz,
 feito em **TypeScript + Three.js (WebGL)**.
 
-> **Demo ao vivo:** _(cole aqui o link depois de publicar)_
+> **Demo ao vivo:** https://sergiomaccari.github.io/simulador-relativistico-fisica-4/
 
 ## O que ele demonstra
 
