@@ -1,29 +1,51 @@
 import {
   Group,
   Mesh,
+  type BufferGeometry,
   BoxGeometry,
   SphereGeometry,
   PlaneGeometry,
+  CylinderGeometry,
+  ConeGeometry,
+  TorusGeometry,
+  TorusKnotGeometry,
+  IcosahedronGeometry,
+  DodecahedronGeometry,
+  OctahedronGeometry,
+  TetrahedronGeometry,
+  CapsuleGeometry,
   Vector3,
 } from 'three';
 import { RelativisticWorld } from '../engine/RelativisticWorld';
 
 /**
- * Monta a cena do laboratório. O observador está na ORIGEM e (no painel) se
- * move ao longo de um eixo; tudo aqui está em repouso no referencial do
- * laboratório, então o que se deforma na tela é puramente efeito relativístico.
+ * Monta a cena do laboratório. O observador está na ORIGEM; tudo aqui está em
+ * repouso no referencial do laboratório, então o que se deforma na tela é
+ * efeito relativístico puro.
  *
- * Elementos pensados para evidenciar cada efeito:
- *   • grade do piso  → contração do espaço
- *   • régua longa    → contração de Lorentz (dramática, ao longo de x)
- *   • colunata       → distâncias entre objetos encurtam
- *   • esferas brancas→ Doppler (frente azul / trás vermelho) + beaming
+ *   • grade do piso → contração do espaço
+ *   • régua longa   → contração de Lorentz (dramática, ao longo de x)
+ *   • colunata      → distâncias entre objetos encurtam
+ *   • galeria de sólidos variados (claros) → Doppler em todas as direções
  */
 export function buildLabScene(world: RelativisticWorld): Group {
   const group = new Group();
 
-  // ── piso: grade wireframe (referência do espaço do laboratório) ──
-  const floorGeo = new PlaneGeometry(96, 96, 48, 48);
+  const add = (
+    geo: BufferGeometry,
+    color: number,
+    pos: [number, number, number],
+    rot?: [number, number, number],
+  ): Mesh => {
+    const mesh = new Mesh(geo, world.createMaterial({ color }));
+    mesh.position.set(pos[0], pos[1], pos[2]);
+    if (rot) mesh.rotation.set(rot[0], rot[1], rot[2]);
+    group.add(mesh);
+    return mesh;
+  };
+
+  // ── piso: grade wireframe (referência do espaço) ──
+  const floorGeo = new PlaneGeometry(96, 96, 64, 64);
   floorGeo.rotateX(-Math.PI / 2);
   const floor = new Mesh(
     floorGeo,
@@ -32,54 +54,47 @@ export function buildLabScene(world: RelativisticWorld): Group {
   floor.position.y = -7;
   group.add(floor);
 
-  // ── régua de medição: barra longa ao longo de x, bem subdividida ──
-  const rulerGeo = new BoxGeometry(60, 0.9, 0.9, 80, 1, 1);
-  const ruler = new Mesh(
-    rulerGeo,
-    world.createMaterial({ color: 0x35e0d0 }),
-  );
-  ruler.position.set(0, 6, 0);
-  group.add(ruler);
-
-  // marcas a cada 10 unidades, para "ver" a régua encolher
+  // ── régua de medição ao longo de x (bem subdividida p/ contrair suave) ──
+  add(new BoxGeometry(60, 0.9, 0.9, 60, 1, 1), 0x35e0d0, [0, 6, 0]);
   for (let x = -30; x <= 30; x += 10) {
-    const tick = new Mesh(
-      new BoxGeometry(0.5, 2.2, 0.5, 1, 4, 1),
-      world.createMaterial({ color: 0xfff2a8 }),
-    );
-    tick.position.set(x, 6, 0);
-    group.add(tick);
+    add(new BoxGeometry(0.5, 2.2, 0.5, 1, 3, 1), 0xfff2a8, [x, 6, 0]);
   }
 
-  // ── colunata: pilares ao longo de x, dos dois lados ──
+  // ── colunata: alterna caixas e cilindros dos dois lados ──
   const pillarColors = [0xff6b6b, 0xffa94d, 0xffd43b, 0x69db7c, 0x4dabf7, 0xb197fc, 0xf783ac];
   for (let i = 0; i < pillarColors.length; i++) {
     const x = -24 + i * 8;
-    for (const z of [-13, 13]) {
-      const pillar = new Mesh(
-        new BoxGeometry(1.6, 9, 1.6, 2, 10, 2),
-        world.createMaterial({ color: pillarColors[i] }),
-      );
-      pillar.position.set(x, -2.5, z);
-      group.add(pillar);
+    for (const z of [-14, 14]) {
+      const geo =
+        i % 2 === 0
+          ? new BoxGeometry(1.6, 9, 1.6, 2, 8, 2)
+          : new CylinderGeometry(0.9, 0.9, 9, 16, 6);
+      add(geo, pillarColors[i], [x, -2.5, z]);
     }
   }
 
-  // ── esferas brancas para o Doppler (frente, trás, laterais) ──
-  const sphereGeo = new SphereGeometry(3.2, 44, 30);
-  const sphereSpots: Array<[number, number, number]> = [
-    [26, 0, 0], // à frente (+x): azul + brilho ao mover-se em +x
-    [-26, 0, 0], // atrás (−x): vermelho + escuro
-    [0, 0, 22], // lateral: Doppler transversal
-    [0, 0, -22],
+  // ── galeria de formas variadas, em anel ao redor do observador ──
+  // claras (branco levemente azulado) para o Doppler ficar bem visível
+  const SH = 0xeef1ff;
+  // Nota: a cor do Doppler é calculada por VÉRTICE (otimização). Por isso os
+  // poliedros de Platão e cone/cilindro são SUBDIVIDIDOS (detail / segments) —
+  // senão a cor não-linear facetaria nas faces grandes. Custo desprezível.
+  const shapes: Array<{ geo: BufferGeometry; rot?: [number, number, number] }> = [
+    { geo: new SphereGeometry(3, 32, 20) },
+    { geo: new IcosahedronGeometry(3, 2) },
+    { geo: new ConeGeometry(2.6, 6, 28, 8) },
+    { geo: new TorusGeometry(2.6, 1.0, 18, 40), rot: [Math.PI / 2, 0, 0] },
+    { geo: new CylinderGeometry(2, 2, 5, 28, 6) },
+    { geo: new DodecahedronGeometry(3, 2) },
+    { geo: new TorusKnotGeometry(2.2, 0.7, 90, 14) },
+    { geo: new OctahedronGeometry(3, 3) },
+    { geo: new CapsuleGeometry(1.6, 3, 8, 18) },
+    { geo: new TetrahedronGeometry(3.4, 3) },
   ];
-  for (const [x, y, z] of sphereSpots) {
-    const sphere = new Mesh(
-      sphereGeo,
-      world.createMaterial({ color: 0xf2f4ff }),
-    );
-    sphere.position.set(x, y, z);
-    group.add(sphere);
+  const R = 26;
+  for (let i = 0; i < shapes.length; i++) {
+    const a = (i / shapes.length) * Math.PI * 2;
+    add(shapes[i].geo, SH, [Math.cos(a) * R, 0, Math.sin(a) * R], shapes[i].rot);
   }
 
   return group;

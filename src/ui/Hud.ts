@@ -15,6 +15,7 @@ export class Hud {
   private elContraction: HTMLElement;
   private elDilation: HTMLElement;
   private elSpeed: HTMLElement;
+  private elFps: HTMLElement;
   private elObsTime: HTMLElement;
   private elLabTime: HTMLElement;
   private obsCtx: CanvasRenderingContext2D;
@@ -30,6 +31,7 @@ export class Hud {
       <div class="hud-row"><span class="hud-label">comprimento L/L₀</span><span class="hud-value" id="hud-contraction">100%</span></div>
       <div class="hud-row"><span class="hud-label">dilatação do tempo</span><span class="hud-value" id="hud-dilation">×1</span></div>
       <div class="hud-row"><span class="hud-label">velocidade v</span><span class="hud-value" id="hud-speed">0</span></div>
+      <div class="hud-row"><span class="hud-label">FPS</span><span class="hud-value" id="hud-fps">—</span></div>
       <div class="hud-sep"></div>
       <div class="hud-clocks">
         <div class="clock">
@@ -50,6 +52,7 @@ export class Hud {
     this.elContraction = this.byId('hud-contraction');
     this.elDilation = this.byId('hud-dilation');
     this.elSpeed = this.byId('hud-speed');
+    this.elFps = this.byId('hud-fps');
     this.elObsTime = this.byId('hud-obstime');
     this.elLabTime = this.byId('hud-labtime');
     this.obsCtx = this.ctx('clock-obs');
@@ -62,6 +65,7 @@ export class Hud {
     this.elContraction.textContent = `${(r.contraction * 100).toFixed(1)}%`;
     this.elDilation.textContent = `×${r.gamma.toFixed(3)}`;
     this.elSpeed.textContent = `${r.speed.toFixed(1)} / ${r.c.toFixed(0)} u/s`;
+    this.elFps.textContent = r.fps > 0 ? r.fps.toFixed(0) : '—';
     this.elObsTime.textContent = `${r.observerTime.toFixed(1)} s`;
     this.elLabTime.textContent = `${r.labTime.toFixed(1)} s`;
     this.drawClock(this.obsCtx, r.observerTime, '#5ad1ff');

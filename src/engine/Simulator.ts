@@ -29,6 +29,7 @@ export interface SimState {
   doppler: boolean;
   beaming: boolean;
   animate: boolean; // relógios correndo
+  quality: 'alta' | 'baixa'; // resolução de render (baixa = mais leve)
 }
 
 /** Leituras derivadas, enviadas ao HUD a cada frame. */
@@ -39,6 +40,7 @@ export interface SimReadout {
   contraction: number; // L/L₀ = 1/γ
   speed: number; // |v| (unidades/s)
   c: number;
+  fps: number; // quadros por segundo (média) — para medir desempenho
   observerTime: number; // seu tempo próprio (s) — mais devagar quando você se move
   labTime: number; // tempo coordenado do laboratório (s)
 }
@@ -56,6 +58,7 @@ export class Simulator {
     doppler: true,
     beaming: true,
     animate: true,
+    quality: 'alta',
   };
 
   readonly readout: SimReadout = {
@@ -65,6 +68,7 @@ export class Simulator {
     contraction: 1,
     speed: 0,
     c: 12,
+    fps: 0,
     observerTime: 0,
     labTime: 0,
   };
@@ -85,6 +89,8 @@ export class Simulator {
   private readonly fpPrompt: HTMLElement | null;
   private lastMode: SimMode = 'lab';
   private lastT = 0;
+  private fpsFrames = 0;
+  private fpsAccum = 0;
 
   // modo "olho do observador": girar o olhar parado na origem (arrastar mouse)
   private readonly eyeEuler = new Euler(0, 0, 0, 'YXZ');
@@ -93,13 +99,14 @@ export class Simulator {
   private eyeDragging = false;
   private eyeLastX = 0;
   private eyeLastY = 0;
+  private readonly eyeForward = new Vector3();
 
   constructor(canvas: HTMLCanvasElement) {
     // Cores em espaço de display direto: o shader já devolve a cor percebida.
     ColorManagement.enabled = false;
 
     this.renderer = new WebGLRenderer({ canvas, antialias: true });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.setQuality(this.state.quality);
     this.scene.background = new Color(0x05060a);
 
     this.camera = new PerspectiveCamera(60, 1, 0.05, 4000);
@@ -178,13 +185,27 @@ export class Simulator {
     this.readout.labTime = 0;
   }
 
+  /** Ajusta a resolução de render: 'baixa' = pixelRatio 1 (mais leve). */
+  setQuality(q: 'alta' | 'baixa'): void {
+    const dpr = q === 'baixa' ? 1 : Math.min(window.devicePixelRatio, 2);
+    this.renderer.setPixelRatio(dpr);
+  }
+
   start(): void {
     this.lastT = performance.now();
     const loop = (t: number) => {
       requestAnimationFrame(loop);
-      const dt = Math.min((t - this.lastT) / 1000, 0.1);
+      const raw = (t - this.lastT) / 1000;
       this.lastT = t;
-      this.tick(dt);
+      // FPS: média numa janela de ~0.5 s (usa o delta real, não o limitado)
+      this.fpsFrames++;
+      this.fpsAccum += raw;
+      if (this.fpsAccum >= 0.5) {
+        this.readout.fps = this.fpsFrames / this.fpsAccum;
+        this.fpsFrames = 0;
+        this.fpsAccum = 0;
+      }
+      this.tick(Math.min(raw, 0.1));
     };
     requestAnimationFrame(loop);
   }
@@ -252,13 +273,15 @@ export class Simulator {
       this.controls.update();
       this.readout.speed = s.betaMag * s.c;
     } else if (s.mode === 'eye') {
-      // parado na origem: β vem do slider; a câmera só gira o olhar
+      // parado na origem; você "se move" PARA ONDE OLHA (β segue o olhar),
+      // então virar o olho gira a direção do movimento e muda de onde vêm as cores
       g = gamma(s.betaMag);
-      this.beta.copy(AXES[s.betaAxis]).multiplyScalar(Math.min(s.betaMag, BETA_MAX));
-      this.playerPos.set(0, 0, 0);
       this.eyeEuler.set(this.eyePitch, this.eyeYaw, 0);
       this.camera.quaternion.setFromEuler(this.eyeEuler);
       this.camera.position.set(0, 0, 0);
+      this.camera.getWorldDirection(this.eyeForward);
+      this.beta.copy(this.eyeForward).multiplyScalar(Math.min(s.betaMag, BETA_MAX));
+      this.playerPos.set(0, 0, 0);
       this.readout.speed = s.betaMag * s.c;
     } else if (!paused) {
       this.fp.update(dt, s.c);
